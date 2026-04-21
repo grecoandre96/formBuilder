@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Form {
+  id             String       @id @default(cuid())
+  name           String
+  slug           String       @unique
+  description    String?
+  webhookUrl     String?
+  webhookHeaders Json?
+  fields         Json         @default("[]")
+  isPublished    Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  submissions    Submission[]
+
+  @@index([slug])
+}
+
+model Submission {
+  id              String   @id @default(cuid())
+  formId          String
+  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data            Json
+  files           Json?
+  metadata        Json?
+  webhookStatus   String?
+  webhookResponse Json?
+  createdAt       DateTime @default(now())
+
+  @@index([formId])
+  @@index([createdAt])
+}
