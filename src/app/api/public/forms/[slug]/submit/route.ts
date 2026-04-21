@@ -63,7 +63,7 @@ export async function POST(
         id: submission.id,
         submittedAt: submission.createdAt.toISOString(),
         data: toLabeled(data ?? {}),
-        ...(Object.keys(fileUrls).length > 0 && { files: toLabeled(fileUrls) }),
+        ...(Object.keys(fileUrls).length > 0 && { files: toLabeled(fileUrls) as Record<string, string> }),
         metadata: { ip, userAgent },
       },
     }).then(async (result) => {
