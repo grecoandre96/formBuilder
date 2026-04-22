@@ -9,8 +9,8 @@ I tipi di campo disponibili sono: text, textarea, email, phone, number, select, 
 
 Ogni campo deve avere: id (stringa cuid2, inizia con lettera, ~24 chars), type, label (in italiano), required (boolean), order (intero da 0).
 
-Per select/radio: aggiungi "options": [{"label": "...", "value": "..."}]
-Per checkbox: aggiungi "options": [{"label": "...", "value": "..."}]
+Per select/radio: aggiungi "options": [{"label": "...", "value": "..."}] — il campo "value" deve essere IDENTICO alla "label" (testo leggibile, non slug)
+Per checkbox: aggiungi "options": [{"label": "...", "value": "..."}] — il campo "value" deve essere IDENTICO alla "label" (testo leggibile, non slug)
 Per heading/section: aggiungi "content": "...", "level": 1|2|3
 Per text/textarea/email/phone/number/select: puoi aggiungere "placeholder": "..."
 Per time: usa type "time" per campi orario (es. 14:30)

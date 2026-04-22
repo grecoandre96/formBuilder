@@ -158,13 +158,16 @@ function OptionsEditor({
   const options = field.options;
 
   function updateOption(i: number, key: "label" | "value", val: string) {
-    const next = options.map((o, idx) => (idx === i ? { ...o, [key]: val } : o));
+    const next = options.map((o, idx) =>
+      idx === i ? { ...o, [key]: val, ...(key === "label" ? { value: val } : {}) } : o
+    );
     onUpdate({ options: next } as Partial<FieldDefinition>);
   }
 
   function addOption() {
     const n = options.length + 1;
-    onUpdate({ options: [...options, { label: `Opzione ${n}`, value: `opzione_${n}` }] } as Partial<FieldDefinition>);
+    const label = `Opzione ${n}`;
+    onUpdate({ options: [...options, { label, value: label }] } as Partial<FieldDefinition>);
   }
 
   function removeOption(i: number) {
