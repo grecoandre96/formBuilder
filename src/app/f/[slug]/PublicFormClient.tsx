@@ -17,6 +17,7 @@ type FormValues = Record<string, string | string[] | File | null>;
 export default function PublicFormClient({ formId, formSlug, fields }: PublicFormClientProps) {
   const [values, setValues] = useState<FormValues>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -41,9 +42,13 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
     return Object.keys(newErrors).length === 0;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleCheckAndConfirm(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    setConfirming(true);
+  }
+
+  async function handleSubmit() {
     setSubmitting(true);
     setSubmitError("");
 
@@ -100,8 +105,41 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
     );
   }
 
+  if (confirming) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-lg border bg-muted/40 p-6 text-center space-y-3">
+          <p className="text-base font-semibold">Hai verificato tutti i dati inseriti?</p>
+          <p className="text-sm text-muted-foreground">
+            Assicurati che tutte le informazioni siano corrette prima di procedere con l&apos;invio.
+          </p>
+        </div>
+
+        {submitError && <p className="text-sm text-destructive text-center">{submitError}</p>}
+
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => { setConfirming(false); setSubmitError(""); }}
+            disabled={submitting}
+          >
+            No, ricontrolla
+          </Button>
+          <Button
+            className="flex-1"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? "Invio in corso..." : "Sì, invia"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleCheckAndConfirm} className="space-y-5">
       {fields.map((field) => (
         <div key={field.id}>
           <FieldInput
@@ -115,8 +153,8 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
-      <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? "Invio in corso..." : "Invia"}
+      <Button type="submit" className="w-full">
+        Controlla e invia
       </Button>
     </form>
   );
