@@ -15,16 +15,29 @@ export async function POST(
 
   const { data, files } = await request.json();
 
-  // Build fieldId → label map for human-readable webhook payload
-  const fields = (form.fields as { id: string; label: string; type: string }[]) ?? [];
+  // Build fieldId → label map and fieldId → optionValue → optionLabel map
+  const fields = (form.fields as { id: string; label: string; type: string; options?: { label: string; value: string }[] }[]) ?? [];
   const labelMap: Record<string, string> = {};
+  const optionMap: Record<string, Record<string, string>> = {};
   for (const f of fields) {
     if (f.id && f.label) labelMap[f.id] = f.label;
+    if (f.id && Array.isArray(f.options) && f.options.length > 0) {
+      optionMap[f.id] = {};
+      for (const opt of f.options) {
+        if (opt.value != null) optionMap[f.id][opt.value] = opt.label ?? opt.value;
+      }
+    }
   }
   function toLabeled(obj: Record<string, unknown>) {
     const result: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
-      result[labelMap[k] ?? k] = v;
+      const humanKey = labelMap[k] ?? k;
+      // Resolve select/radio/checkbox values to their human-readable labels
+      if (optionMap[k] && typeof v === "string" && optionMap[k][v] !== undefined) {
+        result[humanKey] = optionMap[k][v];
+      } else {
+        result[humanKey] = v;
+      }
     }
     return result;
   }
