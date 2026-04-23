@@ -27,7 +27,7 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
     setErrors((e) => ({ ...e, [fieldId]: "" }));
   }
 
-  function validate(): boolean {
+  function handleYes() {
     const newErrors: Record<string, string> = {};
     for (const field of fields) {
       if (field.type === "heading" || field.type === "section") continue;
@@ -39,16 +39,18 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
       }
     }
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
-  function handleYes() {
-    if (!validate()) return;
+    if (Object.keys(newErrors).length > 0) {
+      // Scroll to the first field with an error
+      const firstErrorId = fields.find((f) => newErrors[f.id])?.id;
+      if (firstErrorId) {
+        document.getElementById(`field-${firstErrorId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
     setConfirmed(true);
   }
 
   function handleNo() {
-    // Scroll to first error or top of form so they can recheck
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -113,7 +115,7 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {fields.map((field) => (
-        <div key={field.id}>
+        <div key={field.id} id={`field-${field.id}`}>
           <FieldInput
             field={field}
             value={values[field.id]}

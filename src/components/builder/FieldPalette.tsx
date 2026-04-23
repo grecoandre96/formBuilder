@@ -23,10 +23,10 @@ const FIELD_TYPES: { type: FieldType; label: string; icon: string }[] = [
 function createDefaultField(type: FieldType, order: number): FieldDefinition {
   const base = { id: createId(), type, label: labelFor(type), required: false, order };
   if (type === "select" || type === "radio") {
-    return { ...base, type, options: [{ label: "Opzione 1", value: "opzione_1" }] } as FieldDefinition;
+    return { ...base, type, options: [{ label: "Opzione 1", value: "Opzione 1" }] } as FieldDefinition;
   }
   if (type === "checkbox") {
-    return { ...base, type, options: [{ label: "Opzione 1", value: "opzione_1" }] } as FieldDefinition;
+    return { ...base, type, options: [{ label: "Opzione 1", value: "Opzione 1" }] } as FieldDefinition;
   }
   if (type === "heading" || type === "section") {
     return { ...base, type, content: type === "heading" ? "Titolo sezione" : "Descrizione sezione", level: 2 } as FieldDefinition;
