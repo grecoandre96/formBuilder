@@ -103,7 +103,7 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
       <div className="text-center py-12">
         <div className="text-4xl mb-4">✓</div>
         <h2 className="text-xl font-semibold mb-2">Grazie!</h2>
-        <p className="text-muted-foreground">Il tuo form è stato inviato con successo.</p>
+        <p className="font-bold">La tua richiesta è stata inviata con successo.</p>
       </div>
     );
   }
@@ -126,13 +126,18 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
       {/* Confirmation step — inline, same page */}
       <div className="rounded-lg border bg-muted/40 p-5 space-y-4">
         {!confirmed ? (
-          <Button
-            type="button"
-            className="w-full"
-            onClick={handleConfirm}
-          >
-            Conferma
-          </Button>
+          <>
+            <p className="text-sm font-semibold text-center">
+              Hai compilato tutti i campi? Clicca per confermare.
+            </p>
+            <Button
+              type="button"
+              className="w-full"
+              onClick={handleConfirm}
+            >
+              Conferma
+            </Button>
+          </>
         ) : (
           <Button type="submit" disabled={submitting} className="w-full">
             {submitting ? "Invio in corso..." : "Invia la richiesta"}
