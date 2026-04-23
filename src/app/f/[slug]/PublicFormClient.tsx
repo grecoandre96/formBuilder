@@ -27,7 +27,7 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
     setErrors((e) => ({ ...e, [fieldId]: "" }));
   }
 
-  function handleYes() {
+  function handleConfirm() {
     const newErrors: Record<string, string> = {};
     for (const field of fields) {
       if (field.type === "heading" || field.type === "section") continue;
@@ -48,10 +48,6 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
       return;
     }
     setConfirmed(true);
-  }
-
-  function handleNo() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -129,31 +125,17 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
 
       {/* Confirmation step — inline, same page */}
       <div className="rounded-lg border bg-muted/40 p-5 space-y-4">
-        <p className="text-sm font-semibold text-center">
-          Hai compilato tutti i campi correttamente?
-        </p>
-
         {!confirmed ? (
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={handleNo}
-            >
-              No
-            </Button>
-            <Button
-              type="button"
-              className="flex-1"
-              onClick={handleYes}
-            >
-              Sì
-            </Button>
-          </div>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={handleConfirm}
+          >
+            Conferma
+          </Button>
         ) : (
           <Button type="submit" disabled={submitting} className="w-full">
-            {submitting ? "Invio in corso..." : "Invia"}
+            {submitting ? "Invio in corso..." : "Invia la richiesta"}
           </Button>
         )}
       </div>
