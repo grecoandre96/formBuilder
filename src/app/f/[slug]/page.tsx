@@ -20,13 +20,11 @@ export default async function PublicFormPage({
         <div className="flex justify-center mb-6">
           <img src="/logo.png" alt="Logo" className="h-16 w-auto object-contain" />
         </div>
-        <h1 className="text-2xl font-bold mb-6 text-center">{form.name}</h1>
-        {form.description && (
-          <p className="text-muted-foreground text-sm mb-6">{form.description}</p>
-        )}
         <PublicFormClient
           formId={form.id}
           formSlug={form.slug}
+          formName={form.name}
+          formDescription={form.description ?? undefined}
           fields={form.fields as unknown as FieldDefinition[]}
         />
       </div>

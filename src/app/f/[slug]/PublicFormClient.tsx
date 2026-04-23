@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 interface PublicFormClientProps {
   formId: string;
   formSlug: string;
+  formName: string;
+  formDescription?: string;
   fields: FieldDefinition[];
 }
 
 type FormValues = Record<string, string | string[] | File | null>;
 
-export default function PublicFormClient({ formId, formSlug, fields }: PublicFormClientProps) {
+export default function PublicFormClient({ formId, formSlug, formName, formDescription, fields }: PublicFormClientProps) {
   const [values, setValues] = useState<FormValues>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = useState(false);
@@ -102,13 +104,24 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">✓</div>
-        <h2 className="text-xl font-semibold mb-2">Grazie!</h2>
-        <p className="font-bold">La tua richiesta è stata inviata con successo.</p>
+        <p className="text-xl font-bold">La tua richiesta è stata inviata con successo.</p>
       </div>
     );
   }
 
+  // Title and description shown only before submission
+  const header = (
+    <>
+      <h1 className="text-2xl font-bold mb-6 text-center">{formName}</h1>
+      {formDescription && (
+        <p className="text-muted-foreground text-sm mb-6">{formDescription}</p>
+      )}
+    </>
+  );
+
   return (
+    <>
+    {header}
     <form onSubmit={handleSubmit} className="space-y-5">
       {fields.map((field) => (
         <div key={field.id} id={`field-${field.id}`}>
@@ -145,6 +158,7 @@ export default function PublicFormClient({ formId, formSlug, fields }: PublicFor
         )}
       </div>
     </form>
+    </>
   );
 }
 
