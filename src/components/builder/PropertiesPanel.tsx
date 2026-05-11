@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { createId } from "@paralleldrive/cuid2";
-import { FieldDefinition, SelectField, CheckboxField } from "@/types/form";
+import { FieldDefinition, SelectField, CheckboxField, ShowIfCondition } from "@/types/form";
 
 export default function PropertiesPanel() {
   const { fields, selectedFieldId, updateField } = useBuilderStore();
@@ -143,7 +143,96 @@ export default function PropertiesPanel() {
             )}
           </>
         )}
+
+        {/* Conditional visibility — available for all non-structural fields */}
+        {field.type !== "heading" && field.type !== "section" && (
+          <ConditionalVisibility field={field} allFields={fields} onUpdate={update} />
+        )}
       </div>
+    </div>
+  );
+}
+
+function ConditionalVisibility({
+  field,
+  allFields,
+  onUpdate,
+}: {
+  field: FieldDefinition;
+  allFields: FieldDefinition[];
+  onUpdate: (u: Partial<FieldDefinition>) => void;
+}) {
+  // Only select/radio fields with options can act as trigger
+  const triggerCandidates = allFields.filter(
+    (f) =>
+      f.id !== field.id &&
+      (f.type === "select" || f.type === "radio") &&
+      (f as SelectField).options?.length > 0
+  );
+
+  const showIf = field.showIf as ShowIfCondition | undefined;
+  const triggerField = showIf
+    ? (allFields.find((f) => f.id === showIf.fieldId) as SelectField | undefined)
+    : undefined;
+  const triggerOptions = triggerField?.options ?? [];
+
+  return (
+    <div className="space-y-2 pt-3 border-t">
+      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        Visibilità condizionale
+      </Label>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs">Mostra solo se</Label>
+        <select
+          value={showIf?.fieldId ?? ""}
+          onChange={(e) => {
+            if (!e.target.value) {
+              onUpdate({ showIf: undefined } as Partial<FieldDefinition>);
+            } else {
+              onUpdate({ showIf: { fieldId: e.target.value, value: "" } } as Partial<FieldDefinition>);
+            }
+          }}
+          className="w-full h-8 rounded-md border bg-background text-sm px-2"
+        >
+          <option value="">— Sempre visibile —</option>
+          {triggerCandidates.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {showIf?.fieldId && (
+        <div className="space-y-1.5">
+          <Label className="text-xs">è uguale a</Label>
+          <select
+            value={showIf.value ?? ""}
+            onChange={(e) =>
+              onUpdate({
+                showIf: { fieldId: showIf.fieldId, value: e.target.value },
+              } as Partial<FieldDefinition>)
+            }
+            className="w-full h-8 rounded-md border bg-background text-sm px-2"
+          >
+            <option value="">— Seleziona valore —</option>
+            {triggerOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {showIf?.fieldId && (
+        <p className="text-xs text-muted-foreground">
+          Questo campo appare solo quando{" "}
+          <span className="font-medium">{triggerField?.label ?? "…"}</span> ={" "}
+          <span className="font-medium">{showIf.value || "…"}</span>
+        </p>
+      )}
     </div>
   );
 }

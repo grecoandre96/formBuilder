@@ -16,6 +16,13 @@ interface PublicFormClientProps {
 
 type FormValues = Record<string, string | string[] | File | null>;
 
+function isFieldVisible(field: FieldDefinition, values: FormValues): boolean {
+  const showIf = field.showIf;
+  if (!showIf) return true;
+  const val = values[showIf.fieldId];
+  return typeof val === "string" && val === showIf.value;
+}
+
 export default function PublicFormClient({ formId, formSlug, formName, formDescription, fields }: PublicFormClientProps) {
   const [values, setValues] = useState<FormValues>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,12 +34,15 @@ export default function PublicFormClient({ formId, formSlug, formName, formDescr
   function setValue(fieldId: string, value: string | string[] | File | null) {
     setValues((v) => ({ ...v, [fieldId]: value }));
     setErrors((e) => ({ ...e, [fieldId]: "" }));
+    // Reset confirmation if the user changes a value (conditional fields may appear/disappear)
+    setConfirmed(false);
   }
 
   function handleConfirm() {
     const newErrors: Record<string, string> = {};
     for (const field of fields) {
       if (field.type === "heading" || field.type === "section") continue;
+      if (!isFieldVisible(field, values)) continue;
       if (field.required) {
         const val = values[field.id];
         if (!val || (typeof val === "string" && !val.trim()) || (Array.isArray(val) && val.length === 0)) {
@@ -61,7 +71,7 @@ export default function PublicFormClient({ formId, formSlug, formName, formDescr
       // Handle file uploads first
       const fileUrls: Record<string, string> = {};
       for (const field of fields) {
-        if (field.type === "file" && values[field.id] instanceof File) {
+        if (field.type === "file" && isFieldVisible(field, values) && values[field.id] instanceof File) {
           const formData = new FormData();
           formData.append("file", values[field.id] as File);
           formData.append("formId", formId);
@@ -78,6 +88,7 @@ export default function PublicFormClient({ formId, formSlug, formName, formDescr
       for (const field of fields) {
         if (field.type === "heading" || field.type === "section") continue;
         if (field.type === "file") continue;
+        if (!isFieldVisible(field, values)) continue;
         data[field.id] = values[field.id] ?? null;
       }
 
@@ -123,16 +134,19 @@ export default function PublicFormClient({ formId, formSlug, formName, formDescr
     <>
     {header}
     <form onSubmit={handleSubmit} className="space-y-5">
-      {fields.map((field) => (
-        <div key={field.id} id={`field-${field.id}`}>
-          <FieldInput
-            field={field}
-            value={values[field.id]}
-            error={errors[field.id]}
-            onChange={(val) => setValue(field.id, val)}
-          />
-        </div>
-      ))}
+      {fields.map((field) => {
+        if (!isFieldVisible(field, values)) return null;
+        return (
+          <div key={field.id} id={`field-${field.id}`}>
+            <FieldInput
+              field={field}
+              value={values[field.id]}
+              error={errors[field.id]}
+              onChange={(val) => setValue(field.id, val)}
+            />
+          </div>
+        );
+      })}
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 

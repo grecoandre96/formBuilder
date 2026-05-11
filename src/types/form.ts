@@ -13,12 +13,18 @@ export type FieldType =
   | "heading"
   | "section";
 
+export interface ShowIfCondition {
+  fieldId: string;
+  value: string;
+}
+
 export interface BaseField {
   id: string;
   type: FieldType;
   label: string;
   required: boolean;
   order: number;
+  showIf?: ShowIfCondition;
 }
 
 export interface TextLikeField extends BaseField {

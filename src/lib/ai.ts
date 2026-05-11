@@ -15,6 +15,7 @@ Per heading/section: aggiungi "content": "...", "level": 1|2|3
 Per text/textarea/email/phone/number/select: puoi aggiungere "placeholder": "..."
 Per time: usa type "time" per campi orario (es. 14:30)
 Per file: puoi aggiungere "accept": "...", "maxSizeMb": numero
+Per visibilità condizionale: puoi aggiungere "showIf": {"fieldId": "<id del campo trigger>", "value": "<valore esatto>"} — il campo sarà visibile solo se il campo con quell'id ha quel valore. Funziona solo con campi trigger di tipo select o radio.
 
 Regole:
 - Crea campi sensati con etichette chiare in italiano
