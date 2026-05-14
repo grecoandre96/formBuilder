@@ -16,7 +16,7 @@ export async function POST(
   const { data, files } = await request.json();
 
   // Build fieldId → label map and fieldId → optionValue → optionLabel map
-  const fields = (form.fields as { id: string; label: string; type: string; options?: { label: string; value: string }[] }[]) ?? [];
+  const fields = (form.fields as { id: string; label: string; type: string; options?: { label: string; value: string; meta?: Record<string, string> }[] }[]) ?? [];
   const labelMap: Record<string, string> = {};
   const optionMap: Record<string, Record<string, string>> = {};
   for (const f of fields) {
@@ -32,8 +32,21 @@ export async function POST(
     const result: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
       const humanKey = labelMap[k] ?? k;
-      // Resolve select/radio/checkbox values to their human-readable labels
-      if (optionMap[k] && typeof v === "string" && optionMap[k][v] !== undefined) {
+      // Nested object: { valore, ...meta } — resolve valore label, keep meta keys as-is
+      if (
+        optionMap[k] &&
+        typeof v === "object" &&
+        v !== null &&
+        "valore" in (v as object)
+      ) {
+        const nested = v as Record<string, string>;
+        const { valore: rawValore, ...rest } = nested;
+        result[humanKey] = {
+          valore: optionMap[k][rawValore] ?? rawValore,
+          ...rest,
+        };
+      // Plain string: resolve to human-readable option label
+      } else if (optionMap[k] && typeof v === "string" && optionMap[k][v] !== undefined) {
         result[humanKey] = optionMap[k][v];
       } else {
         result[humanKey] = v;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FieldDefinition } from "@/types/form";
+import { FieldDefinition, SelectField } from "@/types/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,7 +89,25 @@ export default function PublicFormClient({ formId, formSlug, formName, formDescr
         if (field.type === "heading" || field.type === "section") continue;
         if (field.type === "file") continue;
         if (!isFieldVisible(field, values)) continue;
-        data[field.id] = values[field.id] ?? null;
+
+        // For select/radio: if selected option has meta, send nested object
+        if (field.type === "select" || field.type === "radio") {
+          const selectedValue = (values[field.id] as string) ?? null;
+          if (selectedValue) {
+            const selectedOption = (field as SelectField).options?.find(
+              (o) => o.value === selectedValue
+            );
+            if (selectedOption?.meta && Object.keys(selectedOption.meta).length > 0) {
+              data[field.id] = { valore: selectedValue, ...selectedOption.meta };
+            } else {
+              data[field.id] = selectedValue;
+            }
+          } else {
+            data[field.id] = null;
+          }
+        } else {
+          data[field.id] = values[field.id] ?? null;
+        }
       }
 
       const res = await fetch(`/api/public/forms/${formSlug}/submit`, {

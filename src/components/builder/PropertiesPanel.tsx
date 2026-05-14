@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useBuilderStore } from "@/stores/builderStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { createId } from "@paralleldrive/cuid2";
-import { FieldDefinition, SelectField, CheckboxField, ShowIfCondition } from "@/types/form";
+import { FieldDefinition, FieldOption, SelectField, CheckboxField, ShowIfCondition } from "@/types/form";
 
 export default function PropertiesPanel() {
   const { fields, selectedFieldId, updateField } = useBuilderStore();
@@ -244,11 +245,20 @@ function OptionsEditor({
   field: SelectField | CheckboxField;
   onUpdate: (u: Partial<FieldDefinition>) => void;
 }) {
-  const options = field.options;
+  const options = field.options as FieldOption[];
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
-  function updateOption(i: number, key: "label" | "value", val: string) {
+  function toggleExpand(i: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  }
+
+  function updateOptionLabel(i: number, val: string) {
     const next = options.map((o, idx) =>
-      idx === i ? { ...o, [key]: val, ...(key === "label" ? { value: val } : {}) } : o
+      idx === i ? { ...o, label: val, value: val } : o
     );
     onUpdate({ options: next } as Partial<FieldDefinition>);
   }
@@ -261,27 +271,116 @@ function OptionsEditor({
 
   function removeOption(i: number) {
     onUpdate({ options: options.filter((_, idx) => idx !== i) } as Partial<FieldDefinition>);
+    setExpanded((prev) => {
+      const next = new Set<number>();
+      prev.forEach((idx) => {
+        if (idx < i) next.add(idx);
+        else if (idx > i) next.add(idx - 1);
+      });
+      return next;
+    });
+  }
+
+  function addMeta(i: number) {
+    const next = options.map((o, idx) =>
+      idx === i ? { ...o, meta: { ...(o.meta ?? {}), "": "" } } : o
+    );
+    onUpdate({ options: next } as Partial<FieldDefinition>);
+  }
+
+  function updateMeta(i: number, oldKey: string, newKey: string, newVal: string) {
+    const next = options.map((o, idx) => {
+      if (idx !== i) return o;
+      const meta: Record<string, string> = {};
+      for (const [k, v] of Object.entries(o.meta ?? {})) {
+        if (k === oldKey) meta[newKey] = newVal;
+        else meta[k] = v;
+      }
+      return { ...o, meta };
+    });
+    onUpdate({ options: next } as Partial<FieldDefinition>);
+  }
+
+  function removeMeta(i: number, key: string) {
+    const next = options.map((o, idx) => {
+      if (idx !== i) return o;
+      const meta = { ...(o.meta ?? {}) };
+      delete meta[key];
+      return { ...o, meta: Object.keys(meta).length > 0 ? meta : undefined };
+    });
+    onUpdate({ options: next } as Partial<FieldDefinition>);
   }
 
   return (
     <div className="space-y-2 mb-3">
       <Label className="text-xs">Opzioni</Label>
-      {options.map((opt, i) => (
-        <div key={i} className="flex gap-1 items-center">
-          <Input
-            value={opt.label}
-            onChange={(e) => updateOption(i, "label", e.target.value)}
-            className="h-7 text-xs flex-1"
-            placeholder="Etichetta"
-          />
-          <button
-            onClick={() => removeOption(i)}
-            className="text-muted-foreground hover:text-destructive text-xs px-1"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
+      {options.map((opt, i) => {
+        const isExpanded = expanded.has(i);
+        const metaEntries = Object.entries(opt.meta ?? {});
+        const hasMeta = metaEntries.length > 0;
+        return (
+          <div key={i} className="space-y-1">
+            <div className="flex gap-1 items-center">
+              <Input
+                value={opt.label}
+                onChange={(e) => updateOptionLabel(i, e.target.value)}
+                className="h-7 text-xs flex-1"
+                placeholder="Etichetta"
+              />
+              <button
+                onClick={() => toggleExpand(i)}
+                title="Metadati"
+                className={`h-7 px-1.5 rounded border text-xs font-mono transition-colors ${
+                  hasMeta
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {hasMeta ? `{${metaEntries.length}}` : "{}"}
+              </button>
+              <button
+                onClick={() => removeOption(i)}
+                className="text-muted-foreground hover:text-destructive text-xs px-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {isExpanded && (
+              <div className="ml-2 pl-2 border-l border-border space-y-1 pb-1">
+                {metaEntries.map(([k, v]) => (
+                  <div key={k} className="flex gap-1 items-center">
+                    <input
+                      value={k}
+                      onChange={(e) => updateMeta(i, k, e.target.value, v)}
+                      className="h-6 w-0 flex-1 rounded border bg-background px-1.5 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      placeholder="chiave"
+                    />
+                    <input
+                      value={v}
+                      onChange={(e) => updateMeta(i, k, k, e.target.value)}
+                      className="h-6 w-0 flex-1 rounded border bg-background px-1.5 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      placeholder="valore"
+                    />
+                    <button
+                      onClick={() => removeMeta(i, k)}
+                      className="text-muted-foreground hover:text-destructive text-xs px-1 shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addMeta(i)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  + campo
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
       <Button
         variant="outline"
         className="w-full h-7 text-xs"

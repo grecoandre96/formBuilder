@@ -9,7 +9,7 @@ I tipi di campo disponibili sono: text, textarea, email, phone, number, select, 
 
 Ogni campo deve avere: id (stringa cuid2, inizia con lettera, ~24 chars), type, label (in italiano), required (boolean), order (intero da 0).
 
-Per select/radio: aggiungi "options": [{"label": "...", "value": "..."}] — il campo "value" deve essere IDENTICO alla "label" (testo leggibile, non slug)
+Per select/radio: aggiungi "options": [{"label": "...", "value": "..."}] — il campo "value" deve essere IDENTICO alla "label" (testo leggibile, non slug). Opzionalmente ogni opzione può avere "meta": {"chiave1": "valore1", "chiave2": "valore2"} con dati extra che verranno inviati nel webhook quando quella voce viene selezionata.
 Per checkbox: aggiungi "options": [{"label": "...", "value": "..."}] — il campo "value" deve essere IDENTICO alla "label" (testo leggibile, non slug)
 Per heading/section: aggiungi "content": "...", "level": 1|2|3
 Per text/textarea/email/phone/number/select: puoi aggiungere "placeholder": "..."

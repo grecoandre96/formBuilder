@@ -35,15 +35,21 @@ export interface TextLikeField extends BaseField {
   maxLength?: number;
 }
 
+export interface FieldOption {
+  label: string;
+  value: string;
+  meta?: Record<string, string>; // extra key-value pairs attached to this option
+}
+
 export interface SelectField extends BaseField {
   type: "select" | "radio";
-  options: { label: string; value: string }[];
+  options: FieldOption[];
   placeholder?: string;
 }
 
 export interface CheckboxField extends BaseField {
   type: "checkbox";
-  options: { label: string; value: string }[];
+  options: FieldOption[];
 }
 
 export interface FileField extends BaseField {
