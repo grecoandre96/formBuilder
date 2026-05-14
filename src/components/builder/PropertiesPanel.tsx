@@ -348,8 +348,8 @@ function OptionsEditor({
 
             {isExpanded && (
               <div className="ml-2 pl-2 border-l border-border space-y-1 pb-1">
-                {metaEntries.map(([k, v]) => (
-                  <div key={k} className="flex gap-1 items-center">
+                {metaEntries.map(([k, v], mi) => (
+                  <div key={mi} className="flex gap-1 items-center">
                     <input
                       value={k}
                       onChange={(e) => updateMeta(i, k, e.target.value, v)}
